@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@500;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div style="width: 800px; height: 800px; margin: 0 auto">
+      <div
+        class="
+          is-flex
+          is-justify-content-center
+          is-align-items-center
+          is-flex-direction-column
+        "
+        style="height: 100%"
+      >
+        <h1 class="is-size-2 has-text-weight-bold">ENTER SOME ENTRY.</h1>
+        <div class="control m-4 columns" style="display: inline-flex">
+          <input
+            class="input column mx-1"
+            type="text"
+            placeholder="first name"
+            id="fname"
+          />
+          <input
+            class="input column mx-1"
+            type="text"
+            placeholder="last name"
+            id="lname"
+          />
+          <input
+            class="input column mx-1 is-2"
+            type="text"
+            placeholder="number"
+            id="num"
+          />
+          <button class="button is-primary mx-2" onclick="createEmployee()">
+            Submit
+          </button>
+          <button class="button" onclick="searchEmployee()">Search</button>
+        </div>
+
+        <table class="table m-6 is-fullwidth is-hoverable" id="table">
+          <thead id="thead"></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+      }
+    </style>
+    <script>
+      const table = document.getElementById('table');
+      const thead = document.getElementById('thead');
+      const tbody = document.getElementById('tbody');
+
+      async function fetchEmployees() {
+        const res = await fetch('/employees');
+        let list = await res.json();
+        console.log(list);
+        return list;
+      }
+
+      async function createEmployee() {
+        const first_name = document.getElementById('fname').value;
+        const last_name = document.getElementById('lname').value;
+        const num = document.getElementById('num').value;
+        const res = await fetch('/employees', {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ first_name, last_name, num }),
+        });
+
+        const entries = await fetchEmployees();
+        await render(entries);
+      }
+
+      async function searchEmployee() {
+        const first_name = document.getElementById('fname').value;
+        const last_name = document.getElementById('lname').value;
+        const num = document.getElementById('num').value;
+        const res = await fetch(
+          `/employees/${num}&${first_name}&${last_name}`
+        );
+        let list = await res.json();
+        console.log(list);
+
+        render(list);
+      }
+
+      async function driver() {
+        const entries = await fetchEmployees();
+        let hr = document.createElement('tr');
+        hr.classList.add('th');
+        // hr.classList.add('is-selected')
+        thead.appendChild(hr);
+
+        for (let colname of Object.keys(entries[0])) {
+          hr.innerHTML += `<th>${colname}</th>`;
+        }
+
+        render(entries);
+      }
+
+      async function render(entries) {
+        tbody.innerHTML = '';
+        for (let entry of entries) {
+          let tr = document.createElement('tr');
+          tbody.appendChild(tr);
+          for (let col of Object.values(entry)) {
+            tr.innerHTML += `<td>${col}</td>`;
+          }
+          tbody.classList.add('is-hoverable');
+        }
+      }
+
+      driver();
+    </script>
+  </body>
+</html>
